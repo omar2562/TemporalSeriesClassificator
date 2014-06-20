@@ -12,20 +12,24 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	private double[][] matrix;
 	private int falsePositive = 0;
 
+	private int[][] results = new int[2][12];
+
 	public AbstractTSClassificator() {
+		Arrays.fill(results[0], 0);
+		Arrays.fill(results[1], 0);
 	}
 
 	public void fillTrainingMoves(String trainingFile)
 			throws FileNotFoundException {
-		fillVectorMoves(trainingMoveVector, trainingFile);
+		fillVectorMoves(trainingMoveVector, trainingFile, false);
 	}
 
 	public void fillTestMoves(String testFile) throws FileNotFoundException {
-		fillVectorMoves(testMoveVector, testFile);
+		fillVectorMoves(testMoveVector, testFile, true);
 	}
 
-	public void fillVectorMoves(Vector<WiiMove<T>> vector, String fileName)
-			throws FileNotFoundException {
+	public void fillVectorMoves(Vector<WiiMove<T>> vector, String fileName,
+			boolean saveResults) throws FileNotFoundException {
 		Scanner sc = new Scanner(new File(fileName));
 		Scanner scMove;
 		WiiMove<T> move;
@@ -35,6 +39,8 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 			scMove.useLocale(Locale.US);
 			move = new WiiMove<T>();
 			move.setWiiMoveType(scMove.nextInt());
+			if (saveResults)
+				results[0][move.getWiiMoveType() - 1]++;
 			while (scMove.hasNext()) {
 				move.addMove(extractMove(scMove));
 			}
@@ -52,44 +58,49 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 		for (WiiMove<T> move : testMoveVector) {
 			approximateMove = new WiiMove<T>();
 			distanceMin = Float.MAX_VALUE;
-			//System.err.print("====== "+move.getWiiMoveType()+" ======");
+			//System.err.println("====== "+move.getWiiMoveType()+" ======");
 			for (WiiMove<T> trainTest : trainingMoveVector) {
 				matrix = new double[move.getMoveVector().size() + 1][trainTest
 						.getMoveVector().size() + 1];
 				fillEmptyMatrix();
-				fillBaseCase(move,trainTest);
+				fillBaseCase(move, trainTest);
 				distance = dtw(move, move.getMoveVector().size(), trainTest,
 						trainTest.getMoveVector().size());
-				//printMatrix();
+				// printMatrix();
 				//System.out.println("calculado...."+ distance);
 				if (Math.abs(distance - distanceMin) < 0.000001) {
-				    //System.err.println("equal " + trainTest.getWiiMoveType() + ","+approximateMove.getWiiMoveType());
+					//System.err.println("equal " + trainTest.getWiiMoveType()
+					// + ","+approximateMove.getWiiMoveType());
 				}
 				if (distance < distanceMin) {
-					//System.err.println("diff " + trainTest.getWiiMoveType() + ","+approximateMove.getWiiMoveType());
+					//System.err.println("diff " + trainTest.getWiiMoveType() +
+					// ","+approximateMove.getWiiMoveType());
 					approximateMove = trainTest;
 					distanceMin = distance;
 				}
 			}
 			move.setWiiMoveTypeAprox(approximateMove.getWiiMoveType());
-			if (move.getWiiMoveType() != move.getWiiMoveTypeAprox()){
+			if (move.getWiiMoveType() != move.getWiiMoveTypeAprox()) {
 				falsePositive++;
+				results[1][move.getWiiMoveType() - 1]++;
 				//System.err.println("KO");
-			}else{
+			} else {
 				//System.err.println("OK");
 			}
-			//System.out.println("falso positivo:" + falsePositive +"  ---- tipo O: "+move.getWiiMoveType()+" N:"+ move.getWiiMoveTypeAprox());
+			// System.out.println("falso positivo:" + falsePositive
+			// +"  ---- tipo O: "+move.getWiiMoveType()+" N:"+
+			// move.getWiiMoveTypeAprox());
 		}
 	}
 
-	private void fillBaseCase(WiiMove<T> a,WiiMove<T> b) {
+	private void fillBaseCase(WiiMove<T> a, WiiMove<T> b) {
 		T zero = (T) a.getMoveVector().firstElement().getZero();
 		matrix[0][0] = 0;
 		for (int i = 1; i < matrix.length; i++) {
-			matrix[i][0] = a.getMoveVector().get(i-1).difference(zero);
+			matrix[i][0] = Double.MAX_VALUE;//a.getMoveVector().get(i - 1).difference(zero);
 		}
 		for (int i = 1; i < matrix[0].length; i++) {
-			matrix[0][i] = b.getMoveVector().get(i-1).difference(zero);
+			matrix[0][i] = Double.MAX_VALUE;//b.getMoveVector().get(i - 1).difference(zero);
 		}
 	}
 
@@ -98,12 +109,12 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 			return matrix[i][j];
 		T ta = a.getMoveVector().get(i - 1);
 		T tb = b.getMoveVector().get(j - 1);
-		 
+
 		matrix[i][j] = ta.difference(tb)
 				+ Math.min(dtw(a, i - 1, b, j - 1),
 						Math.min(dtw(a, i, b, j - 1), dtw(a, i - 1, b, j)));
-		//printMatrix();
-		//System.out.println("--------------------------------------------------------------------------");
+		// printMatrix();
+		// System.out.println("--------------------------------------------------------------------------");
 		return matrix[i][j];
 	}
 
@@ -116,10 +127,27 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	private void printMatrix() {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < matrix[0].length; j++) {
-				System.out.format("%06.3f |",matrix[i][j]);
+				System.out.format("%06.3f |", matrix[i][j]);
 			}
 			System.out.println();
 		}
+	}
+
+	public void printResults() {
+		System.out.format("training: %d, test: %d%n",trainingMoveVector.size(),testMoveVector.size());
+		int falseP = 0, total = 0;
+		for (int i = 0; i < results[0].length; i++) {
+			falseP += results[1][i];
+			total += results[0][i];
+			System.out.format(
+					"type: %d ,false+: %d ,total: %d ,percentage: %.2f%n",
+					i + 1, results[1][i], results[0][i], 100.0 * results[1][i]
+							/ results[0][i]);
+		}
+		System.out.println("---------------------------------------------------");
+		System.out.format(
+				"general: ,false+: %d ,total: %d ,percentage: %.2f%n", falseP,
+				total, 100.0 * falseP / total);
 	}
 
 	public Vector<WiiMove<T>> getTrainingMoveVector() {
@@ -143,7 +171,7 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	}
 
 	public double getAccertPercentage() {
-		return 100.0 - (100.0*falsePositive / testMoveVector.size());
+		return 100.0 * falsePositive / trainingMoveVector.size();
 	}
 
 }
