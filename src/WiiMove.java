@@ -1,6 +1,6 @@
 import java.util.Vector;
 
-public class WiiMove<T extends MoveInterface> {
+public class WiiMove<T> {
 	private int wiiMoveType = -1;
 	private int wiiMoveTypeAprox = -1;
 	private Vector<T> moveVector = new Vector<T>();
@@ -38,6 +38,7 @@ public class WiiMove<T extends MoveInterface> {
 
 	@Override
 	public String toString() {
-		return "type:"+wiiMoveType+" ,size:"+moveVector.size()+" ,values:"+moveVector;
+		return "type:" + wiiMoveType + " ,size:" + moveVector.size()
+				+ " ,values:" + moveVector;
 	}
 }

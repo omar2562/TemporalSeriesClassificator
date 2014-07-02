@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.Vector;
 
-public abstract class AbstractTSClassificator<T extends MoveInterface> {
+public abstract class AbstractTSClassificator<T> {
 	private Vector<WiiMove<T>> trainingMoveVector = new Vector<WiiMove<T>>();
 	private Vector<WiiMove<T>> testMoveVector = new Vector<WiiMove<T>>();
 
@@ -19,7 +19,7 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	public AbstractTSClassificator() {
 		Arrays.fill(results[0], 0);
 		Arrays.fill(results[1], 0);
-		sakoeChibaBand = 100;
+		sakoeChibaBand = 0;
 	}
 
 	public void fillTrainingMoves(String trainingFile)
@@ -130,7 +130,6 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	}
 
 	private void fillBaseCase(WiiMove<T> a, WiiMove<T> b) {
-		T zero = (T) a.getMoveVector().firstElement().getZero();
 		matrix[0][0] = 0;
 		for (int i = 1; i < matrix.length; i++) {
 			matrix[i][0] = Double.MAX_VALUE;// a.getMoveVector().get(i -
