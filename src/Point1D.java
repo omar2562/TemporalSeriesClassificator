@@ -1,7 +1,7 @@
-public class Move1D {
+public class Point1D {
 	protected float x;
 
-	public Move1D() {
+	public Point1D() {
 	}
 
 	public float getX() {

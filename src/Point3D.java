@@ -1,8 +1,8 @@
-public class Move3D extends Move1D {
+public class Point3D extends Point1D {
 	private float y;
 	private float z;
 
-	public Move3D() {
+	public Point3D() {
 	}
 
 	public float getY() {
