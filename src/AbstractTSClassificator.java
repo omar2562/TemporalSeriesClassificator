@@ -54,6 +54,7 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 	}
 
 	protected abstract T extractMove(Scanner scMove);
+	protected abstract double pointComparation(T a,T b);
 
 	public void solve() {
 		double distance, distanceMin;
@@ -147,7 +148,7 @@ public abstract class AbstractTSClassificator<T extends MoveInterface> {
 		T ta = a.getMoveVector().get(i - 1);
 		T tb = b.getMoveVector().get(j - 1);
 
-		matrix[i][j] = ta.difference(tb)
+		matrix[i][j] = pointComparation(ta, tb)
 				+ Math.min(dtw(a, i - 1, b, j - 1),
 						Math.min(dtw(a, i, b, j - 1), dtw(a, i - 1, b, j)));
 		// printMatrix();

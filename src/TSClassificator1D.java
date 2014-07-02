@@ -9,4 +9,9 @@ public class TSClassificator1D extends AbstractTSClassificator<Move1D> {
 		return move;
 	}
 
+	@Override
+	protected double pointComparation(Move1D a, Move1D b) {
+		return Math.pow(a.getX() - b.getX(), 2);
+	}
+
 }
