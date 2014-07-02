@@ -31,6 +31,7 @@ public abstract class AbstractTSClassificator<T> {
 		fillVectorMoves(testMoveVector, testFile, true);
 	}
 
+	@SuppressWarnings("resource")
 	public void fillVectorMoves(Vector<WiiMove<T>> vector, String fileName,
 			boolean saveResults) throws FileNotFoundException {
 		Scanner sc = new Scanner(new File(fileName));
@@ -54,7 +55,8 @@ public abstract class AbstractTSClassificator<T> {
 	}
 
 	protected abstract T extractMove(Scanner scMove);
-	protected abstract double pointComparation(T a,T b);
+
+	protected abstract double pointComparation(T a, T b);
 
 	public void solve() {
 		double distance, distanceMin;
@@ -62,18 +64,12 @@ public abstract class AbstractTSClassificator<T> {
 		for (WiiMove<T> move : testMoveVector) {
 			approximateMove = new WiiMove<T>();
 			distanceMin = Float.MAX_VALUE;
-			// System.err.println("====== "+move.getWiiMoveType()+" ======");
 			for (WiiMove<T> trainTest : trainingMoveVector) {
 				matrix = new double[move.getMoveVector().size() + 1][trainTest
 						.getMoveVector().size() + 1];
-				// fillEmptyMatrix();
-				// fillBaseCase(move, trainTest);
 				fillMatrixMatrix(move, trainTest);
-				// printMatrix();
 				distance = dtw(move, move.getMoveVector().size(), trainTest,
 						trainTest.getMoveVector().size());
-				// printMatrix();
-				// System.out.println("calculado...."+ distance);
 				if (Math.abs(distance - distanceMin) < 0.000001) {
 					// System.err.println("equal " + trainTest.getWiiMoveType()
 					// + ","+approximateMove.getWiiMoveType());
@@ -89,13 +85,7 @@ public abstract class AbstractTSClassificator<T> {
 			if (move.getWiiMoveType() != move.getWiiMoveTypeAprox()) {
 				falsePositive++;
 				results[1][move.getWiiMoveType() - 1]++;
-				// System.err.println("KO");
-			} else {
-				// System.err.println("OK");
 			}
-			// System.out.println("falso positivo:" + falsePositive
-			// +"  ---- tipo O: "+move.getWiiMoveType()+" N:"+
-			// move.getWiiMoveTypeAprox());
 		}
 	}
 
@@ -129,18 +119,6 @@ public abstract class AbstractTSClassificator<T> {
 		matrix[0][0] = 0;
 	}
 
-	private void fillBaseCase(WiiMove<T> a, WiiMove<T> b) {
-		matrix[0][0] = 0;
-		for (int i = 1; i < matrix.length; i++) {
-			matrix[i][0] = Double.MAX_VALUE;// a.getMoveVector().get(i -
-											// 1).difference(zero);
-		}
-		for (int i = 1; i < matrix[0].length; i++) {
-			matrix[0][i] = Double.MAX_VALUE;// b.getMoveVector().get(i -
-											// 1).difference(zero);
-		}
-	}
-
 	private double dtw(WiiMove<T> a, int i, WiiMove<T> b, int j) {
 		if (matrix[i][j] != -1)
 			return matrix[i][j];
@@ -150,17 +128,10 @@ public abstract class AbstractTSClassificator<T> {
 		matrix[i][j] = pointComparation(ta, tb)
 				+ Math.min(dtw(a, i - 1, b, j - 1),
 						Math.min(dtw(a, i, b, j - 1), dtw(a, i - 1, b, j)));
-		// printMatrix();
-		// System.out.println("--------------------------------------------------------------------------");
 		return matrix[i][j];
 	}
 
-	private void fillEmptyMatrix() {
-		for (int i = 0; i < matrix.length; i++) {
-			Arrays.fill(matrix[i], -1);
-		}
-	}
-
+	@SuppressWarnings("unused")
 	private void printMatrix() {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < matrix[0].length; j++) {
@@ -175,15 +146,10 @@ public abstract class AbstractTSClassificator<T> {
 
 	public void printResults() {
 		String outputHeadFormat = "result training:%d test:%d BandPrec:%d%n";
-		//outputHeadFormat = "training: %d, test: %d BandPrec: %d%n";
-		System.out.format(outputHeadFormat,
-				trainingMoveVector.size(), testMoveVector.size(),
-				sakoeChibaBand);
+		System.out.format(outputHeadFormat, trainingMoveVector.size(),
+				testMoveVector.size(), sakoeChibaBand);
 		int falseP = 0, total = 0;
-		// String outputFormat =
-		// "type: %d ,false+: %d ,total: %d ,percentage: %.2f%n";
 		String outputFormat = "%d %d %d %.2f%n";
-		//String outputResultFormat = "general: ,false+: %d ,total: %d ,percentage: %.2f%n";
 		String outputResultFormat = "general %d %d %.2f%n";
 		for (int i = 0; i < results[0].length; i++) {
 			falseP += results[1][i];
@@ -191,9 +157,8 @@ public abstract class AbstractTSClassificator<T> {
 			System.out.format(outputFormat, i + 1, results[1][i],
 					results[0][i], 100.0 * results[1][i] / results[0][i]);
 		}
-		System.out.format(
-				outputResultFormat, falseP,
-				total, 100.0 * falseP / total);
+		System.out.format(outputResultFormat, falseP, total, 100.0 * falseP
+				/ total);
 	}
 
 	public Vector<WiiMove<T>> getTrainingMoveVector() {
