@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.Vector;
 
-public abstract class AbstractTSClassificator<T> {
+public abstract class AbstractTSClassificator<T extends Point1D> {
 	private Vector<WiiMove<T>> trainingMoveVector = new Vector<WiiMove<T>>();
 	private Vector<WiiMove<T>> testMoveVector = new Vector<WiiMove<T>>();
 
@@ -19,7 +19,7 @@ public abstract class AbstractTSClassificator<T> {
 	public AbstractTSClassificator() {
 		Arrays.fill(results[0], 0);
 		Arrays.fill(results[1], 0);
-		sakoeChibaBand = 0;
+		sakoeChibaBand = 30;
 	}
 
 	public void fillTrainingMoves(String trainingFile)
@@ -68,6 +68,7 @@ public abstract class AbstractTSClassificator<T> {
 				matrix = new double[move.getMoveVector().size() + 1][trainTest
 						.getMoveVector().size() + 1];
 				fillMatrixMatrix(move, trainTest);
+				//printMatrix();
 				distance = dtw(move, move.getMoveVector().size(), trainTest,
 						trainTest.getMoveVector().size());
 				if (Math.abs(distance - distanceMin) < 0.000001) {

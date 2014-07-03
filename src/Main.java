@@ -7,8 +7,8 @@ public class Main {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		TSClassificator1D tsClassificator1D = new TSClassificator1D();
-		tsClassificator1D.fillTrainingMoves("treino.txt");
-		tsClassificator1D.fillTestMoves("teste.txt");
+		tsClassificator1D.fillTrainingMoves("treino2.txt");
+		tsClassificator1D.fillTestMoves("teste2.txt");
 		tsClassificator1D.solve();
 		tsClassificator1D.printResults();
 		/*

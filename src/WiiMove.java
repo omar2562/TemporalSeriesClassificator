@@ -1,6 +1,6 @@
 import java.util.Vector;
 
-public class WiiMove<T> {
+public class WiiMove<T extends Point1D> {
 	private int wiiMoveType = -1;
 	private int wiiMoveTypeAprox = -1;
 	private Vector<T> moveVector = new Vector<T>();
